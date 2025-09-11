@@ -1,3 +1,4 @@
+//press i
 //first
 enum AnimationState {
   IDLE,          
