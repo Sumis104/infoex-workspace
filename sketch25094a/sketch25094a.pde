@@ -54,16 +54,16 @@ void draw() {
       ballVelocity = 0;
     }
   }
-    if (ballDropping && !ballSettled) {
+  if (ballDropping && !ballSettled) {
     ballVelocity += gravity;
     ballY += ballVelocity;
     
-    if (ballY + ballRadius >= ballTargetY + ballRadius) {
+  if (ballY + ballRadius >= ballTargetY + ballRadius) {
       ballY = ballTargetY;
       ballVelocity *= -damping;
       bounceCount++;
       
-      if (abs(ballVelocity) < minBounceVelocity || bounceCount > 10) {
+  if (abs(ballVelocity) < minBounceVelocity || bounceCount > 10) {
         ballSettled = true;
         ballY = ballTargetY;
         ballVelocity = 0;
@@ -74,10 +74,8 @@ void draw() {
   
   if (ballDropping || ballSettled) {
     if (bounceCount == 0) {
-      // バウンド前はバーと同じ色
       fill(50, 50, 200);
     } else {
-      // バウンド後は指定の色
       fill(255, 100, 100);
     }
     noStroke();
@@ -89,14 +87,12 @@ void draw() {
     textAlign(CENTER, CENTER);
     textSize(32);
     text("Complete!", centerX, height * 0.85);
-    
     resetTimer++;
     if (resetTimer >= resetDelay) {
       resetAnimation();
     }
   }
   
-  // アニメーション開始前にメッセージを表示
   if (!isBarGrowing && !barComplete && !animationComplete) {
     fill(100);
     textAlign(CENTER, BOTTOM);
