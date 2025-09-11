@@ -1,4 +1,4 @@
-//press i
+//iを押す
 //first
 enum AnimationState {
   IDLE,          
