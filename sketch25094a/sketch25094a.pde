@@ -1,3 +1,4 @@
+//first
 enum AnimationState {
   IDLE,          
   BAR_GROWING,   
