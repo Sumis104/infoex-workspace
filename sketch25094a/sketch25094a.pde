@@ -1,25 +1,30 @@
+enum AnimationState {
+  IDLE,          
+  BAR_GROWING,   
+  BALL_DROPPING, 
+  COMPLETED     
+}
+AnimationState currentState = AnimationState.IDLE;
+
 float barHeight = 0;
 float barTargetHeight = 180;
 float barGrowthRate = 3;
-boolean isBarGrowing = false;
-boolean barComplete = false;
+color barColor;
+color[] colorPalette;
+int colorIndex = 0;
 
 float ballY = -50;
 float ballVelocity = 0;
 float gravity = 0.8;
 float damping = 0.7; 
 float ballTargetY; 
-boolean ballDropping = false;
-boolean ballSettled = false;
 int bounceCount = 0;
 float minBounceVelocity = 0.5;
+float ballRestingOffset = 20; 
 
-// リセット管理
-boolean animationComplete = false;
 int resetTimer = 0;
 int resetDelay = 60; 
 
-// 描画位置
 float centerX;
 float barY;
 float barWidth = 60;
@@ -30,101 +35,106 @@ void setup() {
   smooth();
   centerX = width / 2;
   barY = height * 0.7; 
-  ballTargetY = barY - barTargetHeight - ballRadius - 20; 
+
+  colorPalette = new color[] {
+    color(50, 50, 200),   
+    color(200, 50, 50),   
+    color(50, 200, 50)   
+  };
+  barColor = colorPalette[colorIndex];
 }
 
 void draw() {
   background(240);
+
+  switch (currentState) {
+    case IDLE:
+      fill(100);
+      textAlign(CENTER, BOTTOM);
+      textSize(20);
+      text("Press 'i' to start\nPress 'c' to change color", width / 2, height - 20);
+      break;
+      
+    case BAR_GROWING:
+      barHeight += barGrowthRate;
+      if (barHeight >= barTargetHeight) {
+        barHeight = barTargetHeight;
+        startBallDrop(); 
+      }
+      break;
+      
+    case BALL_DROPPING:
+      ballVelocity += gravity;
+      ballY += ballVelocity;
+      
+      if (ballY >= ballTargetY) {
+        ballY = ballTargetY;
+        ballVelocity *= -damping; 
+        bounceCount++;
+        
+        if (abs(ballVelocity) < minBounceVelocity || bounceCount > 10) {
+          ballVelocity = 0; 
+          currentState = AnimationState.COMPLETED;
+        }
+      }
+      break;
+      
+    case COMPLETED:
+      fill(50, 200, 50);
+      textAlign(CENTER, CENTER);
+      textSize(32);
+      text("Complete!", centerX, height * 0.85);
+      resetTimer++;
+      if (resetTimer >= resetDelay) {
+        resetAnimation();
+      }
+      break;
+  }
   
   if (barHeight > 0) {
-    fill(50, 50, 200);
+    fill(barColor);
     noStroke();
     rectMode(CENTER);
     rect(centerX, barY - barHeight/2, barWidth, barHeight, 10);
   }
 
-  if (isBarGrowing && !barComplete) {
-    barHeight += barGrowthRate;
-    if (barHeight >= barTargetHeight) {
-      barHeight = barTargetHeight;
-      barComplete = true;
-      isBarGrowing = false;
-      ballDropping = true;
-      ballY = 50; 
-      ballVelocity = 0;
-    }
-  }
-  if (ballDropping && !ballSettled) {
-    ballVelocity += gravity;
-    ballY += ballVelocity;
-    
-  if (ballY + ballRadius >= ballTargetY + ballRadius) {
-      ballY = ballTargetY;
-      ballVelocity *= -damping;
-      bounceCount++;
-      
-  if (abs(ballVelocity) < minBounceVelocity || bounceCount > 10) {
-        ballSettled = true;
-        ballY = ballTargetY;
-        ballVelocity = 0;
-        animationComplete = true;
-      }
-    }
-  }
-  
-  if (ballDropping || ballSettled) {
-    if (bounceCount <= 3) {
-      fill(50, 50, 200);
-    } else {
-      fill(255, 100, 100);
-    }
+  if (currentState == AnimationState.BALL_DROPPING || currentState == AnimationState.COMPLETED) {
+    fill(bounceCount <= 3 ? barColor : color(255, 100, 100));
     noStroke();
     ellipse(centerX, ballY, ballRadius * 2, ballRadius * 2);
   }
-  
-  if (animationComplete) {
-    fill(50, 200, 50);
-    textAlign(CENTER, CENTER);
-    textSize(32);
-    text("Complete!", centerX, height * 0.85);
-    resetTimer++;
-    if (resetTimer >= resetDelay) {
-      resetAnimation();
-    }
-  }
-  
-  if (!isBarGrowing && !barComplete && !animationComplete) {
-    fill(100);
-    textAlign(CENTER, BOTTOM);
-    textSize(24);
-    text("Press i", width / 2, height - 20);
-  }
-  
 }
 
 void keyPressed() {
-  if ((key == 'i' || key == 'I') && !isBarGrowing && !barComplete) {
-    isBarGrowing = true;
+  if (Character.toLowerCase(key) == 'i' && currentState == AnimationState.IDLE) {
+    currentState = AnimationState.BAR_GROWING;
+  }
+  if (Character.toLowerCase(key) == 'c') {
+    colorIndex = (colorIndex + 1) % colorPalette.length; 
+    barColor = colorPalette[colorIndex];
   }
 }
 
 void keyReleased() {
-  if ((key == 'i' || key == 'I') && isBarGrowing && !barComplete) {
-    isBarGrowing = false;
+  if (Character.toLowerCase(key) == 'i' && currentState == AnimationState.BAR_GROWING) {
+    startBallDrop();
   }
+}
+
+void startBallDrop() {
+  currentState = AnimationState.BALL_DROPPING;
+  ballTargetY = barY - barHeight - ballRadius - ballRestingOffset;
+  ballY = 50; 
+  ballVelocity = 0;
 }
 
 void resetAnimation() {
   barHeight = 0;
-  isBarGrowing = false;
-  barComplete = false;
   
   ballY = -50;
   ballVelocity = 0;
-  ballDropping = false;
-  ballSettled = false;
   bounceCount = 0;
   
-  animationComplete = false;
   resetTimer = 0;
+  currentState = AnimationState.IDLE;
 }
