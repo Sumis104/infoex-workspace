@@ -73,7 +73,7 @@ void draw() {
   }
   
   if (ballDropping || ballSettled) {
-    if (bounceCount == 0) {
+    if (bounceCount <= 5) {
       fill(50, 50, 200);
     } else {
       fill(255, 100, 100);
