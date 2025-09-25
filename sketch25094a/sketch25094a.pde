@@ -1,3 +1,5 @@
+//iを押す
+//first
 enum AnimationState {
   IDLE,          
   BAR_GROWING,   
